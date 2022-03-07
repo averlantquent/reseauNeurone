@@ -26,7 +26,7 @@ class dataLearn:
 class neuron:
     def __init__(self) :
         self.weightLayer = [] #la liste des poids qui y sont associés
-        self.value = 0 # le résultat présent pour ce neuron        
+        self.value = 0 # le résultat de la propagation pour ce neuron        
         self.errorDetect = 0
         self.potentiel = 0
         self.potentielSigmoid = 0    
@@ -205,8 +205,6 @@ def runDataLearnMethod2(firstLayer,lastLayer):
             firstLayer,lastLayer = calculatePropagation(data,firstLayer,lastLayer)
             listError[i]= ( calculateOfficialResult(lastLayer)==data.officialResult)
             error += CalculateErrorTotal(data,lastLayer)
-            # print("Résultat trouvé : ",calculateOfficialResult(lastLayer)," Resultat officiel : ",data.officialResult)
-            
             countFail = printNumberSuccessAndFail(listError)
             evolutionOfFail.append(countFail)
 
@@ -294,14 +292,6 @@ def bruitage(data,pourcentageDeBruit):
         
         
     return dataModified
-
-
-
-
-
-
-
-    
         
 #permet d'initialiser en chargeant un premier fichier et d'initialiser un certain nombre de neurones
 def init(nbPoids):
@@ -381,24 +371,9 @@ neuronsFirstLayer = init_neurons(nombrePoidsParNeuronCouche1,nombreNeuronCouche1
 nombreNeuronCouche2 = NUMBERS_TO_DETECT
 nombrePoidsParCouche2 = nombreNeuronCouche1
 neuronsSecondLayer = init_neurons(nombrePoidsParCouche2,nombreNeuronCouche2)
-
-# data = init_data(10)
-# firstLayer,lastLayer = calculatePropagation(data,neuronsFirstLayer,neuronsSecondLayer)
-
 neuronsFirstLayer,neuronsSecondLayer,evolutionOfError = runDataLearnMethod2(neuronsFirstLayer,neuronsSecondLayer)
-# # writeNeuronWeightOnFile(neurons,0)
-#runAllFileToTest(neurons)
-# # runTest()
-
 title = "Evolution de l'erreur avec epsilon="+str(EPSILON_ERROR)
 PrintManagerEvolutionOfError(evolutionOfError,title)
-# courbeGeneralisation(neurons)
-
 print("FIN")
-# init()
-# runDataLearn()
-
-# courbeGeneralisation()
-
 pylab.show()
 

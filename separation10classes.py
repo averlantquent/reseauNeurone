@@ -145,7 +145,6 @@ def runDataLearnMethod2(neurons):
             resCalculerOfficial = calculateOfficialResult(neurons)
             listError[i]= ( resCalculerOfficial==data.officialResult)
             error += CalculateErrorTotal(data,neurons)
-
             countFail = printNumberSuccessAndFail(listError)
             evolutionOfFail.append(countFail)
         evolutionOfError.append(error)

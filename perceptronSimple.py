@@ -134,8 +134,6 @@ def runDataLearnMethod1():
         for i in range(0,NUMBER_OF_DATA_LEARN_FILE):
             data = init_data(i)
             analogicAnswer,officialRes = calculatePropagation(data)
-
-                            
             listError[i]= (officialRes==data.officialResult)
             if(AreAllTestSuccess(listError)):
                 countOfSuccessInARow +=1
@@ -166,7 +164,6 @@ def printNumberSuccessAndFail(listError):
 #Effectue 50 itérations sur un jeu de motifs bruités
 #retourne le nombre d'erreur
 def run50timesOnDataModified(data,tauxBruit):
-    
     nbIteration = 50
     listError = [False]*nbIteration 
     counter = 1
@@ -177,7 +174,6 @@ def run50timesOnDataModified(data,tauxBruit):
         listError[i]= (officialRes==dataModified.officialResult)
         counter +=1
     counterOfError = printNumberSuccessAndFail(listError)
-    
     return counterOfError
 
 def courbeGeneralisationMotif0():
@@ -222,9 +218,7 @@ def bruitage(data,pourcentageDeBruit):
         if dataModified.input[i] == 0:
             dataModified.input[i]=1
         else :
-            dataModified.input[i]=0
-        
-        
+            dataModified.input[i]=0        
     return dataModified
 
 #permet d'initialiser en chargeant un premier fichier et d'initialiser le nombre de poids en fonction

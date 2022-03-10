@@ -124,7 +124,6 @@ def CalculateErrorTotal(data,neurons):
 
 def runDataLearnMethod2(neurons):
     listError = [False]*NUMBER_OF_DATA_LEARN_FILE 
-    counter = 1
     evolutionOfFail = []
     countFail = printNumberSuccessAndFail(listError)
     evolutionOfFail.append(countFail)
@@ -147,8 +146,7 @@ def runDataLearnMethod2(neurons):
             error += CalculateErrorTotal(data,neurons)
             countFail = printNumberSuccessAndFail(listError)
             evolutionOfFail.append(countFail)
-        evolutionOfError.append(error)
-        counter +=1
+        evolutionOfError.append(error)    
     return neurons,evolutionOfError
 
 
@@ -253,39 +251,6 @@ def init():
     nbPoids = len(data.input)
     return init_neuron(nbPoids)
 
-
-def init_neuron_test(nombrePoids):
-    neurons = []
-    NombreNeuronSortie = NUMBERS_TO_DETECT
-    for i in range(NombreNeuronSortie):
-        newNeuron = neuron_layer()
-        initWeight_test(newNeuron,nombrePoids)
-        neurons.append(newNeuron)
-    return neurons
-
-def initWeight_test(neuron,nombrePoids) :    
-    neuron.weightLayer = []
-    for i in range(nombrePoids):
-        neuron.weightLayer.append(0.125)
-def initTest():
-    data = init_data(0)
-    nbPoids = len(data.input)
-    return init_neuron_test(nbPoids)
-
-
-def runTest():
-    neurons = initTest()
-    runDataLearnMethod2(neurons)
-
-#Permet de sauvergarder l'ensemble des poids dans un fichier pour une lecture future
-def writeNeuronWeightOnFile(neurons,index):
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    dataFile = open(dir_path+"/save_neurons/save"+str(index)+".txt", "w")
-
-    for neuron in neurons:
-        dataFile.write(str(neuron.weightLayer))    
-        dataFile.write("\n")
-    dataFile.close()
     
 
 def runAllFileToTest(neurons):

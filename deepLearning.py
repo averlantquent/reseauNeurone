@@ -13,8 +13,8 @@ SEUIL_ACTIVATION = 0.5
 TAUX_APPRENTISSAGE = 0.1
 NUMBER_OF_DATA_LEARN_FILE = 10
 EPSILON_ERROR = 0.1
-
-
+NOMBRE_NEURONE_COUCHE_CACHE =100
+NOMBRE_ITERATION =2000
 class dataLearn:
     def __init__(self):
         self.input = []
@@ -44,7 +44,6 @@ def initWeight(neuron,nombrePoids) :
     neuron.weightLayer = []
     for i in range(nombrePoids):
         neuron.weightLayer.append(rand.random()/nombrePoids)
-        # neuron.weightLayer.append(1)
 
 
 
@@ -60,7 +59,6 @@ def init_data(dataFileIndex,learn=True):
     data.lignes = lines
     numberLines = len(lines)
     data.nbLines = numberLines
-    # print("number line : "+str(numberLines))
     for x in range(0,numberLines-1):
         line = lines[x]
         lenOfLine = len(line)-1
@@ -138,7 +136,6 @@ def ApplicateCorrectionToWeight(data,firstLayer,secondLayer):
     indexOfNeuron=0
 
     for neuron in secondLayer:
-        # neuron.errorDetect = sigmoidPrime(neuron.value)*data.arrayOfficialResult[indexOfNeuron]-neuron.potentiel
         neuron.errorDetect = sigmoidPrime(neuron.value)*(data.arrayOfficialResult[indexOfNeuron]-neuron.value)
         neuron.potentielSigmoid = sigmoidPrime(neuron.value)
         indexOfNeuron+=1
@@ -193,7 +190,7 @@ def runDataLearnMethod2(firstLayer,lastLayer):
     
     error = NUMBER_OF_DATA_LEARN_FILE
     evolutionOfError = []
-    while  error>EPSILON_ERROR and counter<10000: #on fixe une limite en cas de boucle trop longue
+    while  error>EPSILON_ERROR and counter<NOMBRE_ITERATION: #on fixe une limite en cas de boucle trop longue
         for i in range(0,NUMBER_OF_DATA_LEARN_FILE): #Apprend sur tout le set
             data = init_data(i)
             firstLayer,lastLayer = calculatePropagation(data,firstLayer,lastLayer)
@@ -208,7 +205,7 @@ def runDataLearnMethod2(firstLayer,lastLayer):
             countFail = printNumberSuccessAndFail(listError)
             evolutionOfFail.append(countFail)
 
-        print("Counter :",counter," error : ",error)
+        # print("Counter :",counter," error : ",error)
         evolutionOfError.append(error)
         counter +=1
     print("nombre iteration : ",counter)
@@ -224,44 +221,39 @@ def printNumberSuccessAndFail(listError):
         if(i):
             countSuccess +=1
         else:
-            countFail +=1
-    
-    # print("Nb Success : ",countSuccess," Nb Fail : ",countFail)
-    
+            countFail +=1    
     return countFail
 
 #Correspond à la partie généralisation
 #Effectue 50 itérations sur un jeu de motifs bruités
 #retourne le nombre d'erreur
-def run50timesOnDataModified(data,tauxBruit,neurons):
+def run50timesOnDataModified(data,tauxBruit,neuronsFirstLayer,neuronsSecondLayer):
     
     nbIteration = 50
     listError = [False]*nbIteration 
     counter = 1
     for i in range(0,nbIteration):
         dataModified = bruitage(data,tauxBruit)
-        neurons = calculatePropagation(dataModified,neurons)                
-        listError[i]= ( calculateOfficialResult(neurons)==data.officialResult)
+        neurons = calculatePropagation(dataModified,neuronsFirstLayer,neuronsSecondLayer)                
+        listError[i]= ( calculateOfficialResult(neuronsSecondLayer)==data.officialResult)
         counter +=1
     counterOfError = printNumberSuccessAndFail(listError)
     
     return counterOfError
 
-def courbeGeneralisationMotif(integerOfData,neurons):
+def courbeGeneralisationMotif(integerOfData,neuronsFirstLayer,neuronsSecondLayer):
     evolutionOfFail = []
     data = init_data(integerOfData)
     for i in range(0,100):
-        counterOfFail = run50timesOnDataModified(data,i,neurons)
+        counterOfFail = run50timesOnDataModified(data,i,neuronsFirstLayer,neuronsSecondLayer)
         evolutionOfFail.append(counterOfFail*2)
-        
-
     return evolutionOfFail
 
 
-def courbeGeneralisation(neurons):
+def courbeGeneralisation(neuronsFirstLayer,neuronsSecondLayer):
     
     for i in range(NUMBERS_TO_DETECT):
-        evolutionOfFail =courbeGeneralisationMotif(i,neurons)            
+        evolutionOfFail =courbeGeneralisationMotif(i,neuronsFirstLayer,neuronsSecondLayer)            
         plt.plot(evolutionOfFail,label=("Courbe de generalisation Motif ",i))
     plt.xlabel("Taux de bruitage")
     plt.ylabel("Pourcentage erreur")
@@ -295,45 +287,8 @@ def bruitage(data,pourcentageDeBruit):
         
 #permet d'initialiser en chargeant un premier fichier et d'initialiser un certain nombre de neurones
 def init(nbPoids):
-    # data = init_data(0)
-    # nbPoids = len(data.input)
     return init_neurons(nbPoids)
-
-
-def init_neuron_test(nombrePoids):
-    neurons = []
-    NombreNeuronSortie = NUMBERS_TO_DETECT
-    for i in range(NombreNeuronSortie):
-        newNeuron = neuron()
-        initWeight_test(newNeuron,nombrePoids)
-        neurons.append(newNeuron)
-    return neurons
-
-def initWeight_test(neuron,nombrePoids) :    
-    neuron.weightLayer = []
-    for i in range(nombrePoids):
-        neuron.weightLayer.append(0.125)
-def initTest():
-    data = init_data(0)
-    nbPoids = len(data.input)
-    return init_neuron_test(nbPoids)
-
-
-def runTest():
-    neurons = initTest()
-    print("test init finish")
-    runDataLearnMethod2(neurons)
-
-#Permet de sauvergarder l'ensemble des poids dans un fichier pour une lecture future
-def writeNeuronWeightOnFile(neurons,index):
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    dataFile = open(dir_path+"/save_neurons/save"+str(index)+".txt", "w")
-
-    for neuron in neurons:
-        dataFile.write(str(neuron.weightLayer))    
-        dataFile.write("\n")
-    dataFile.close()
-    
+   
 
 def runAllFileToTest(neurons):
     listError = [False]*NUMBER_OF_DATA_LEARN_FILE
@@ -364,7 +319,7 @@ def PrintManagerEvolutionOfError(evolutionOfError,title):
 
 data = init_data(0)
 
-nombreNeuronCouche1 = 100
+nombreNeuronCouche1 = NOMBRE_NEURONE_COUCHE_CACHE
 nombrePoidsParNeuronCouche1 = len(data.input)
 neuronsFirstLayer = init_neurons(nombrePoidsParNeuronCouche1,nombreNeuronCouche1)
 
@@ -374,6 +329,7 @@ neuronsSecondLayer = init_neurons(nombrePoidsParCouche2,nombreNeuronCouche2)
 neuronsFirstLayer,neuronsSecondLayer,evolutionOfError = runDataLearnMethod2(neuronsFirstLayer,neuronsSecondLayer)
 title = "Evolution de l'erreur avec epsilon="+str(EPSILON_ERROR)
 PrintManagerEvolutionOfError(evolutionOfError,title)
+courbeGeneralisation(neuronsFirstLayer,neuronsSecondLayer)
 print("FIN")
 pylab.show()
 

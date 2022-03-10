@@ -7,4 +7,5 @@ Pour la partie trois, il faut lancer le fichier separation10classes. Il va utili
 Pour la partie 4, deux codes sont disponibles :  
     deepLearning.py : Utilise comme fichier source les 10 motifs précédemment créés.
     deepLEarningMnist.py : Utilise la base Mnist pour faire l'apprentissage et les tests. 
-Pour lancer ce deepLEarningMnist, il faut d'abord installer keras ainsi que tensorflow. (pip install keras, pip install tensoflow)
+Pour lancer ce deepLEarningMnist, il faut d'abord installer keras ainsi que tensorflow. (pip install keras, pip install tensoflow).4
+Afin de limiter le temps pour la phase d'apprentissage, nous avons réduit le nombre d'itération pour la phase d'apprentissage en passant de 100000 à 10000. Libre à vous de changer cette valeur.

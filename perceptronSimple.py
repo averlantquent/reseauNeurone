@@ -244,7 +244,6 @@ def PrintManagerEvolutionOfError(evolutionOfError,title):
     pylab.show()
 
 init()
-
 evolutionOfError = runDataLearnMethod1()
 PrintManagerEvolutionOfError(evolutionOfError,"Evolution de l'erreur - Perceptron simple")
 evolution0,evolution1 = courbeGeneralisation()

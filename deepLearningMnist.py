@@ -12,11 +12,12 @@ from contextlib import contextmanager
 
 NUMBERS_TO_DETECT = 10
 SEUIL_ACTIVATION = 0.5
-TAUX_APPRENTISSAGE = 1
+TAUX_APPRENTISSAGE = 0.1
 NUMBER_OF_DATA_LEARN_FILE = 59000
 EPSILON_ERROR = 0.1
-NUMBER_OF_FILE_TO_TEST = 20000
-
+NUMBER_OF_FILE_TO_TEST = 1000
+NOMBRE_NEURONE_COUCHE_CACHE =100
+NOMBRE_ITERATION =10000
 
 
 @contextmanager
@@ -55,13 +56,6 @@ def initWeight(neuron,nombrePoids) :
     neuron.weightLayer = []
     for i in range(nombrePoids):
         neuron.weightLayer.append(rand.random()/nombrePoids)
-        # neuron.weightLayer.append(1)
-
-
-
-
-
-
 
 def init_data(train_X,train_Y,numberSelected=0):
     
@@ -77,8 +71,8 @@ def init_data(train_X,train_Y,numberSelected=0):
         data.input.append(value/255)
         
     data.officialResult = train_Y[numberSelected]
+    
     data.arrayOfficialResult[data.officialResult] =1 #On met un 1 pour la case d'arrivée
-    # print("official result = "+str(data.officialResult))
     return data
 
 #Must return the index of the best neuron
@@ -93,12 +87,7 @@ def calculateOfficialResult(lastLayer):
         i+=1
     return bestNeuron    
 
-
-
-
-
-
-
+#Propage entre les neurones d'entrés et la couche cachée
 def calculatePropagation_1(input,neurons):
     length =len(input)
     for neuron in neurons:
@@ -107,7 +96,7 @@ def calculatePropagation_1(input,neurons):
             neuron.potentiel += input[i]*neuron.weightLayer[i]
         neuron.value = sigmoid(neuron.potentiel)
     return neurons
-
+#Propage entre couche caché et couche finale
 def calculatePropagation_2(neuronsInput,neurons):
     length =len(neuronsInput)
     for neuron in neurons:
@@ -141,7 +130,6 @@ def ApplicateCorrectionToWeight(data,firstLayer,secondLayer):
     indexOfNeuron=0
 
     for neuron in secondLayer:
-        # neuron.errorDetect = sigmoidPrime(neuron.value)*data.arrayOfficialResult[indexOfNeuron]-neuron.potentiel
         neuron.errorDetect = sigmoidPrime(neuron.value)*(data.arrayOfficialResult[indexOfNeuron]-neuron.value)
         neuron.potentielSigmoid = sigmoidPrime(neuron.value)
         indexOfNeuron+=1
@@ -185,40 +173,34 @@ def CalculateErrorTotal(data,lastLayer):
     return erreurCalcule
 
 
-def runDataLearnMethod2(firstLayer,lastLayer,train_X, train_y):
-    listError = [False]*NUMBER_OF_DATA_LEARN_FILE 
+def runDataLearnMethod2(firstLayer,lastLayer,train_X, train_y,test_X, test_y):
+    nombreFichierAtesterApprentissage =100
+    listError = [False]*nombreFichierAtesterApprentissage 
     counter = 1
     evolutionOfFail = []
     countFail = printNumberSuccessAndFail(listError)
-    # evolutionOfFail.append(countFail)
-    
     error = NUMBER_OF_DATA_LEARN_FILE
     evolutionOfError = []
-    while  error>EPSILON_ERROR and counter<2000: #on fixe une limite en cas de boucle trop longue
-        
-        # for i in range(0,NUMBER_OF_DATA_LEARN_FILE): #Apprend sur tout le set
-        rankMotifSelected = rand.randint(0, 59000)
-        data = init_data(train_X, train_y,rankMotifSelected)
-        firstLayer,lastLayer = calculatePropagation(data,firstLayer,lastLayer)
-        firstLayer,lastLayer = ApplicateCorrectionToWeight(data,firstLayer,lastLayer) # On applique la correction des poids 
-            
-        # error= 0
-        # for i in range(0,NUMBER_OF_DATA_LEARN_FILE): #Calcul les erreurs restantes sans modifier les poids
-        #     data = init_data(train_X, train_y,i)
-        #     firstLayer,lastLayer = calculatePropagation(data,firstLayer,lastLayer)
-        #     listError[i]= ( calculateOfficialResult(lastLayer)==data.officialResult)
-        #     error += CalculateErrorTotal(data,lastLayer)
-        #     # print("Résultat trouvé : ",calculateOfficialResult(lastLayer)," Resultat officiel : ",data.officialResult)
-            
-        #     countFail = printNumberSuccessAndFail(listError)
-        #     evolutionOfFail.append(countFail)
+    apprentissageLearn = 0
+    with(timeit_context("Temps pour apprentissage")):
 
-        # print("Counter :",counter," error : ",error)
-        print("Counter :",counter)
-        # evolutionOfError.append(error)
-        counter +=1
+        while  error>EPSILON_ERROR and counter<NOMBRE_ITERATION: #on fixe une limite en cas de boucle trop longue
+            rankMotifSelected = rand.randint(0, 59000)
+            data = init_data(train_X, train_y,rankMotifSelected)
+            firstLayer,lastLayer = calculatePropagation(data,firstLayer,lastLayer)
+            firstLayer,lastLayer = ApplicateCorrectionToWeight(data,firstLayer,lastLayer) # On applique la correction des poids 
+            counter +=1
+            apprentissageLearn +=1                                                                                                                          
+            if apprentissageLearn>100:
+                apprentissageLearn= 0
+                print("Test pour l'iteration : ",counter)
+                countFail = runDataTest(firstLayer,lastLayer,test_X, test_y)
+                evolutionOfFail.append(countFail)
+
+                
+        
     print("nombre iteration : ",counter)
-    return firstLayer,lastLayer,evolutionOfError
+    return firstLayer,lastLayer,evolutionOfFail
 
 
 # print the number of success and fail
@@ -231,9 +213,6 @@ def printNumberSuccessAndFail(listError):
             countSuccess +=1
         else:
             countFail +=1
-    
-    # print("Nb Success : ",countSuccess," Nb Fail : ",countFail)
-    
     return countFail
 
 
@@ -248,8 +227,6 @@ def plotCout(listeCout):
         
 #permet d'initialiser en chargeant un premier fichier et d'initialiser un certain nombre de neurones
 def init(nbPoids):
-    # data = init_data(0)
-    # nbPoids = len(data.input)
     return init_neurons(nbPoids)
 
 
@@ -281,33 +258,21 @@ def runDataTest(firstLayer,lastLayer,test_X, test_y):
     evolutionOfFail = []
     countFail = printNumberSuccessAndFail(listError)
     evolutionOfFail.append(countFail)
-    
-    error = NUMBER_OF_DATA_LEARN_FILE
-    evolutionOfError = []
-    
-    error= 0
     for i in range(0,NUMBER_OF_FILE_TO_TEST-1): #Calcul les erreurs restantes sans modifier les poids
         data = init_data(test_X, test_y,i)
         firstLayer,lastLayer = calculatePropagation(data,firstLayer,lastLayer)
         listError[i]= ( calculateOfficialResult(lastLayer)==data.officialResult)
-        # error += CalculateErrorTotal(data,lastLayer)
-        print("Résultat trouvé : ",calculateOfficialResult(lastLayer)," Resultat officiel : ",data.officialResult)
-        
-
-        # evolutionOfFail.append(countFail)
-
-        # print("Counter :",counter," error : ",error)
-        # evolutionOfError.append(error)
+        # print("Résultat trouvé : ",calculateOfficialResult(lastLayer)," Resultat officiel : ",data.officialResult)
         counter +=1
     countFail = printNumberSuccessAndFail(listError)
-    print("nombre iteration : ",counter)
+    print("success = ",((NUMBER_OF_FILE_TO_TEST-countFail)/NUMBER_OF_FILE_TO_TEST)*100,"%")
     return countFail
 
 (train_X, train_y), (test_X, test_y) = mnist.load_data()
 
 data = init_data(train_X,train_y)
 
-nombreNeuronCouche1 = 100
+nombreNeuronCouche1 = NOMBRE_NEURONE_COUCHE_CACHE
 nombrePoidsParNeuronCouche1 = len(data.input)
 neuronsFirstLayer = init_neurons(nombrePoidsParNeuronCouche1,nombreNeuronCouche1)
 
@@ -315,24 +280,15 @@ nombreNeuronCouche2 = NUMBERS_TO_DETECT
 nombrePoidsParCouche2 = nombreNeuronCouche1
 neuronsSecondLayer = init_neurons(nombrePoidsParCouche2,nombreNeuronCouche2)
 
-# data = init_data(10)
-# firstLayer,lastLayer = calculatePropagation(data,neuronsFirstLayer,neuronsSecondLayer)
 
-neuronsFirstLayer,neuronsSecondLayer,evolutionOfError = runDataLearnMethod2(neuronsFirstLayer,neuronsSecondLayer,train_X, train_y)
-# # writeNeuronWeightOnFile(neurons,0)
-#runAllFileToTest(neurons)
-# # runTest()
+
+neuronsFirstLayer,neuronsSecondLayer,evolutionOfError = runDataLearnMethod2(neuronsFirstLayer,neuronsSecondLayer,train_X, train_y,test_X, test_y)
+
+
+countFail = runDataTest(neuronsFirstLayer,neuronsSecondLayer,test_X, test_y)
 
 title = "Evolution de l'erreur avec epsilon="+str(EPSILON_ERROR)
 PrintManagerEvolutionOfError(evolutionOfError,title)
-# courbeGeneralisation(neurons)
-countFail = runDataTest(neuronsFirstLayer,neuronsSecondLayer,test_X, test_y)
-print("Count fail ",countFail)
 print("FIN")
-# init()
-# runDataLearn()
-
-# courbeGeneralisation()
-
 pylab.show()
 
